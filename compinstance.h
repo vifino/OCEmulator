@@ -42,6 +42,9 @@ private:
     static int getBootAddress(lua_State *L);
     static int setBootAddress(lua_State *L);
     static int getRealTime(lua_State *L);
+
+    static int allowBytecode(lua_State *L);
+    static int getTimeout(lua_State *L);
 };
 
 #endif // COMPINSTANCE_H

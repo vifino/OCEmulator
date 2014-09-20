@@ -93,6 +93,19 @@ CompInstance::CompInstance(std::string ipath) : addressu(boost::uuids::random_ge
 
     lua_setglobal(thread, "component");
 
+    // System APi
+    lua_newtable(thread);
+    lua_pushstring(thread, "allowBytecode");
+    lua_pushlightuserdata(thread, (void*)this);
+    lua_pushcclosure(thread, CompInstance::allowBytecode, 1);
+    lua_settable(thread, -3);
+
+    lua_pushstring(thread, "timeout");
+    lua_pushlightuserdata(thread, (void*)this);
+    lua_pushcclosure(thread, CompInstance::getTimeout, 1);
+    lua_settable(thread, -3);
+    lua_setglobal(thread, "system");
+
     int err = luaL_loadstring(thread, init);
     if (err == LUA_ERRSYNTAX)
     {
@@ -104,6 +117,10 @@ CompInstance::CompInstance(std::string ipath) : addressu(boost::uuids::random_ge
         int args = 0;
         while ((err = lua_resume(thread, NULL, args)) == LUA_YIELD)
         {
+            if (lua_gettop(thread) > 0)
+            {
+                std::cout << lua_typename(thread, 1) << std::endl;
+            }
             args = 0;
             if (lua_isfunction(thread, 1))
             {
@@ -204,5 +221,17 @@ int CompInstance::setBootAddress(lua_State *L)
 int CompInstance::getRealTime(lua_State *L)
 {
     lua_pushnumber(L, 67); // Hehe
+    return 1;
+}
+
+int CompInstance::allowBytecode(lua_State *L)
+{
+    lua_pushboolean(L, 0);
+    return 1;
+}
+
+int CompInstance::getTimeout(lua_State *L)
+{
+    lua_pushnumber(L, 60);
     return 1;
 }

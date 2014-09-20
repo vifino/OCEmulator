@@ -7,5 +7,4 @@ extern "C" {
     #include <lauxlib.h>
 }
 
-
 #endif // LUA_HPP

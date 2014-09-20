@@ -719,6 +719,7 @@ local function main()
       end
     end
 
+    print("Runnin'")
     debug.sethook(co, checkDeadline, "", hookInterval)
     local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
     if not result[1] then
@@ -726,6 +727,7 @@ local function main()
     elseif coroutine.status(co) == "dead" then
       error("computer stopped unexpectedly", 0)
     else
+      print("Yielded")
       args = table.pack(coroutine.yield(result[2])) -- system yielded value
       wrapUserdata(args)
     end
