@@ -2,8 +2,7 @@
 #
 # Project created by QtCreator 2014-09-19T15:55:35
 #
-# Created By: Altenius
-# Managed by: vifino
+# Created By: Altenius and vifino
 #
 #-------------------------------------------------
 
