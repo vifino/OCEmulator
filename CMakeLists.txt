@@ -1,0 +1,18 @@
+PROJECT(OCEmulator)
+FIND_PACKAGE(Qt4 REQUIRED)
+FIND_PACKAGE(OpenGL REQUIRED)
+FIND_PACKAGE(Lua REQUIRED)
+
+SET(OCEmulator_SOURCES main.cpp mainwindow.cpp emuscreen.cpp compinstance.cpp component.cpp filesystemcomponent.cpp)
+SET(OCEmulator_HEADERS mainwindow.h)
+SET(OCEmulator_FORMS mainwindow.ui)
+SET(QT_USE_QTOPENGL TRUE)
+
+QT4_WRAP_CPP(OCEmulator_HEADERS_MOC ${OCEmulator_HEADERS})
+QT4_WRAP_UI(OCEmulator_FORM_HEADERS ${OCEmulator_FORMS})
+
+INCLUDE(${QT_USE_FILE} ${LUA_INCLUDE_DIR})
+ADD_DEFINITIONS(${QT_DEFINITIONS})
+
+ADD_EXECUTABLE(OCEmulator ${OCEmulator_SOURCES} ${OCEmulator_FORMS} ${OCEmulator_HEADERS_MOC})
+TARGET_LINK_LIBRARIES(OCEmulator ${QT_LIBRARIES} ${OPENGL_LIBRARY} ${LUA_LIBRARIES})
