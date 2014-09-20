@@ -2,6 +2,8 @@
 #
 # Project created by QtCreator 2014-09-19T15:55:35
 #
+# Created By: Altenius and vifino
+#
 #-------------------------------------------------
 
 QT       += core gui opengl
