@@ -15,16 +15,22 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     emuscreen.cpp \
-    compinstance.cpp
+    compinstance.cpp \
+    component.cpp \
+    filesystemcomponent.cpp
 
 HEADERS  += mainwindow.h \
     emuscreen.h \
-    compinstance.h
+    compinstance.h \
+    component.h \
+    filesystemcomponent.h
 
 FORMS    += mainwindow.ui
 
-OTHER_FILES += \
-    ../build-OCEmulator-Desktop-Debug/init.lua
+OTHER_FILES +=
 
-unix: CONFIG += link_pkgconfig
-unix: PKGCONFIG += lua
+unix|win32: LIBS += -lboost_system
+
+unix|win32: LIBS += -llua
+
+unix|win32: LIBS += -lboost_filesystem
