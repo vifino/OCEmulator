@@ -252,7 +252,6 @@ int FilesystemComponent::onInvoke(lua_State *L)
         lua_pushboolean(L, 1);
         lua_pushnumber(L, file.descriptor);
 
-        std::cout << "FD: " << file.descriptor << std::endl;
         return 2;
     }
     return 0;
