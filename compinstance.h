@@ -9,6 +9,7 @@
 #include "component.h"
 #include "filesystemcomponent.h"
 #include "lua.hpp"
+#include <cstdio>
 
 #include <boost/bind.hpp>
 #include <boost/uuid/uuid.hpp>

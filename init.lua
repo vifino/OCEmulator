@@ -1,12 +1,3 @@
-local m = component.list()
-
-for i,v in pairs(m) do
-    local r = component.methods(i)
-    for s,l in pairs(r) do
-        print(s .. " = " .. tostring(l))
-    end
-end
-
 local hookInterval = 100
 local deadline = math.huge
 local hitDeadline = false
@@ -512,7 +503,7 @@ libcomponent = {
         return invoke(component, direct, address, method, ...)
       end
     end
-    error("no such method", 1)
+    error("no such method", 2)
   end,
   list = function(filter, exact)
     checkArg(1, filter, "string", "nil")
@@ -644,7 +635,6 @@ sandbox.unicode = libunicode
 local function bootstrap()
   function boot_invoke(address, method, ...)
     local result = table.pack(pcall(invoke, component, true, address, method, ...))
-    print("Res: " .. tostring(result[1]), tostring(result[2]), tostring(result[3]), tostring(result[4]))
     if not result[1] then
       return nil, result[2]
     else
@@ -719,7 +709,6 @@ local function main()
       end
     end
 
-    print("Runnin'")
     debug.sethook(co, checkDeadline, "", hookInterval)
     local result = table.pack(coroutine.resume(co, table.unpack(args, 1, args.n)))
     if not result[1] then
@@ -727,7 +716,6 @@ local function main()
     elseif coroutine.status(co) == "dead" then
       error("computer stopped unexpectedly", 0)
     else
-      print("Yielded")
       args = table.pack(coroutine.yield(result[2])) -- system yielded value
       wrapUserdata(args)
     end

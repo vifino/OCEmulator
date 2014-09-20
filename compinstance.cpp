@@ -16,17 +16,24 @@ CompInstance::CompInstance(std::string ipath) : addressu(boost::uuids::random_ge
 
     std::cout << "New computer with uuid '" << address << "'" << std::endl;
 
-    std::ifstream n;
+    /*std::ifstream n;
     n.open("init.lua", std::ios::ate | std::ios::binary);
     std::ifstream::pos_type length = n.tellg();
     n.seekg(0, std::ios_base::beg);
 
     std::vector<char> initb(length);
-    n.read(&initb[0], length);
+    n.read(&initb[0], length);*/
 
-    char *init = &initb[0];
+    FILE *initf = fopen("init.lua", "r");
+    fseek(initf, 0, SEEK_END);
+    int size = ftell(initf);
+    fseek(initf, 0, SEEK_SET);
 
-    n.close();
+    char init[size + 1];
+    fread(init, 1, size, initf);
+    init[size] = '\0';
+
+    fclose(initf);
 
     state = luaL_newstate(); // Never really used
 
@@ -155,12 +162,25 @@ int CompInstance::onAddress(lua_State *L)
 int CompInstance::componentList(lua_State *L)
 {
     CompInstance *ins = (CompInstance*)lua_touserdata(L, lua_upvalueindex(1));
+    std::string filter = "";
+    int exact = 0;
+    if (lua_isstring(L, 1))
+    {
+        filter = lua_tostring(L, 1);
+        if (lua_isboolean(L, 2))
+        {
+            exact = lua_toboolean(L, 2);
+        }
+    }
     lua_newtable(L);
     for(std::vector<boost::shared_ptr<Component> >::iterator it = ins->components.begin(); it != ins->components.end(); ++it)
     {
-        lua_pushstring(L, (*it)->address.c_str());
-        lua_pushstring(L, (*it)->getName().c_str());
-        lua_settable(L, -3);
+        if (filter.empty() || (*it)->getName() == filter || (exact == 1 && (*it)->getName().find(filter) != std::string::npos))
+        {
+            lua_pushstring(L, (*it)->address.c_str());
+            lua_pushstring(L, (*it)->getName().c_str());
+            lua_settable(L, -3);
+        }
     }
     return 1;
 }

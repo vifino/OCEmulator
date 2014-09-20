@@ -206,6 +206,18 @@ int FilesystemComponent::listMethods(lua_State *L)
     lua_pushstring(L, "makeDirectory");
     lua_pushboolean(L, 0);
     lua_settable(L, -3);
+
+    lua_pushstring(L, "open");
+    lua_pushboolean(L, 0);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "read");
+    lua_pushboolean(L, 0);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "close");
+    lua_pushboolean(L, 0);
+    lua_settable(L, -3);
     return 1;
 }
 
@@ -248,11 +260,69 @@ int FilesystemComponent::onInvoke(lua_State *L)
             lua_pushstring(L, "file not found");
             return 2;
         }
+
+        if (file.mode == "r" || file.mode == "rb")
+        {
+            fseek(file.file, 0,  SEEK_END);
+            file.length = ftell(file.file);
+            fseek(file.file, 0, SEEK_SET);
+        }
+
         files.push_back(file);
         lua_pushboolean(L, 1);
         lua_pushnumber(L, file.descriptor);
 
         return 2;
+    }
+    else if (method == "read")
+    {
+        int fd = luaL_checknumber(L, 3);
+        int length = luaL_checknumber(L, 4);
+
+        for (std::vector<fileD>::iterator it = files.begin(); it != files.end(); ++it)
+        {
+            if (it->descriptor == fd)
+            {
+                if (it->mode != "r" && it->mode != "rb")
+                {
+                    lua_pushnil(L);
+                    lua_pushstring(L, "not open for reading");
+                    return 2;
+                }
+
+                if (length <= 0 || length > it->length)
+                    length = it->length;
+
+                char buffer[length];
+                int rd = fread(buffer, 1, length, it->file);
+                if (rd == 0)
+                {
+                    lua_pushboolean(L, 1);
+                    lua_pushnil(L);
+                    return 2;
+                }
+                lua_pushboolean(L, 1);
+                lua_pushstring(L, buffer);
+
+                return 2;
+            }
+        }
+    }
+    else if (method == "close")
+    {
+        int fd = luaL_checknumber(L, 3);
+
+        for (std::vector<fileD>::iterator it = files.begin(); it != files.end(); ++it)
+        {
+            if (it->descriptor == fd)
+            {
+                fclose(it->file);
+                files.erase(it);
+
+                lua_pushboolean(L, 1);
+                return 1;
+            }
+        }
     }
     return 0;
 }

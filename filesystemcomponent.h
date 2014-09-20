@@ -12,6 +12,7 @@ struct fileD
     int descriptor;
     FILE *file;
     std::string mode;
+    int length;
 };
 
 class FilesystemComponent : public Component
