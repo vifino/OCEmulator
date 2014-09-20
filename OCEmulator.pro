@@ -23,7 +23,8 @@ HEADERS  += mainwindow.h \
     emuscreen.h \
     compinstance.h \
     component.h \
-    filesystemcomponent.h
+    filesystemcomponent.h \
+    lua.hpp
 
 FORMS    += mainwindow.ui
 
