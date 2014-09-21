@@ -7,10 +7,13 @@
 #include <sstream>
 #include <vector>
 #include <queue>
+#include <cstdio>
+
 #include "component.h"
 #include "filesystemcomponent.h"
+#include "screencomponent.h"
+
 #include "lua.hpp"
-#include <cstdio>
 
 #include <QTime>
 #include <QTimer>
