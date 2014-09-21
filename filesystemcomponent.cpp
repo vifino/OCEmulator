@@ -218,6 +218,22 @@ int FilesystemComponent::listMethods(lua_State *L)
     lua_pushstring(L, "close");
     lua_pushboolean(L, 0);
     lua_settable(L, -3);
+
+    lua_pushstring(L, "getLabel");
+    lua_pushboolean(L, 0);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "list");
+    lua_pushboolean(L, 0);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "isDirectory");
+    lua_pushboolean(L, 0);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "exists");
+    lua_pushboolean(L, 0);
+    lua_settable(L, -3);
     return 1;
 }
 
@@ -293,7 +309,8 @@ int FilesystemComponent::onInvoke(lua_State *L)
                 if (length <= 0 || length > it->length)
                     length = it->length;
 
-                char buffer[length];
+                char buffer[length + 1];
+                memset(buffer, '\0', length + 1);
                 int rd = fread(buffer, 1, length, it->file);
                 if (rd == 0)
                 {
@@ -323,6 +340,54 @@ int FilesystemComponent::onInvoke(lua_State *L)
                 return 1;
             }
         }
+    }
+    else if (method == "getLabel")
+    {
+        lua_pushboolean(L, 1);
+        lua_pushstring(L, address.c_str());
+        return 2;
+    }
+    else if (method == "list")
+    {
+        std::string path = luaL_checkstring(L, 3);
+        path = normalize(path);
+        std::string rpath = fpath + "/" + path;
+
+        boost::filesystem::recursive_directory_iterator it(rpath);
+        boost::filesystem::recursive_directory_iterator it_end;
+
+        int on = 0;
+
+        lua_pushboolean(L, 1) ;
+        lua_newtable(L);
+        for(; it != it_end; ++it)
+        {
+            lua_pushnumber(L, ++on);
+            lua_pushstring(L, (*it).path().string().substr(rpath.length() + 1).c_str());
+            lua_settable(L, -3);
+        }
+
+        return 2;
+    }
+    else if (method == "isDirectory")
+    {
+        std::string path = luaL_checkstring(L, 3);
+        path = normalize(path);
+        std::string rpath = fpath + "/" + path;
+
+        lua_pushboolean(L, 1);
+        lua_pushboolean(L, boost::filesystem::is_directory(rpath));
+        return 2;
+    }
+    else if (method == "exists")
+    {
+        std::string path = luaL_checkstring(L, 3);
+        path = normalize(path);
+        std::string rpath = fpath + "/" + path;
+
+        lua_pushboolean(L, 1);
+        lua_pushboolean(L, boost::filesystem::exists(rpath));
+        return 2;
     }
     return 0;
 }

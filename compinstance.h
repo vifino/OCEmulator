@@ -11,6 +11,11 @@
 #include "lua.hpp"
 #include <cstdio>
 
+#include <QTime>
+
+#include <unicode/ustring.h>
+#include <unicode/unistr.h>
+
 #include <boost/bind.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -29,6 +34,10 @@ public:
 protected:
     std::string bootAddress;
     std::string path;
+    int usedMemory;
+    int maxMemory;
+
+    QTime startTime;
 private:
     lua_State *state;
     lua_State *thread;
@@ -38,14 +47,26 @@ private:
     static int componentList(lua_State *L);
     static int methodsList(lua_State *L);
     static int componentInvoke(lua_State *L);
+    static int componentType(lua_State *L);
 
     static int onAddress(lua_State *L);
     static int getBootAddress(lua_State *L);
     static int setBootAddress(lua_State *L);
     static int getRealTime(lua_State *L);
+    static int getFreeMemory(lua_State *L);
+    static int getUptime(lua_State *L);
 
     static int allowBytecode(lua_State *L);
     static int getTimeout(lua_State *L);
+
+    static int uniChar(lua_State *L);
+    static int uniUpper(lua_State *L);
+    static int uniLower(lua_State *L);
+    static int uniReverse(lua_State *L);
+    static int uniLen(lua_State *L);
+    static int uniSub(lua_State *L);
+
+    static void *l_alloc_restricted (void *ud, void *ptr, size_t osize, size_t nsize);
 };
 
 #endif // COMPINSTANCE_H

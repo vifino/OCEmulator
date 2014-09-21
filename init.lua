@@ -1,3 +1,5 @@
+print(unicode.char(10045, 23432, 234))
+
 local hookInterval = 100
 local deadline = math.huge
 local hitDeadline = false
@@ -97,7 +99,7 @@ sandbox = {
     checkDeadline()
     return table.unpack(result, 1, result.n)
   end,
-  print = nil, -- in boot/*_base.lua
+  print = print,--nil, -- in boot/*_base.lua
   rawequal = rawequal,
   rawget = rawget,
   rawlen = rawlen,

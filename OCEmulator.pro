@@ -32,7 +32,6 @@ OTHER_FILES += \
     init.lua
 
 unix|win32: LIBS += -lboost_system
-
 unix|win32: LIBS += -llua5.2
-
+unix|win32: LIBS += -licuuc
 unix|win32: LIBS += -lboost_filesystem

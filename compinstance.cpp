@@ -2,6 +2,10 @@
 
 CompInstance::CompInstance(std::string ipath) : addressu(boost::uuids::random_generator()())
 {
+    startTime.start();
+
+    maxMemory = 1024 * 1024;
+    usedMemory = 0;
     path = ipath;
     boost::filesystem::create_directories(path);
 
@@ -35,11 +39,11 @@ CompInstance::CompInstance(std::string ipath) : addressu(boost::uuids::random_ge
 
     fclose(initf);
 
-    state = luaL_newstate(); // Never really used
+    state = lua_newstate(CompInstance::l_alloc_restricted, this);
 
     thread = lua_newthread(state);
-    luaL_requiref(thread, "package", luaopen_package, 1); // require() and stuff
-    lua_pop(thread, 1);
+    //luaL_requiref(thread, "package", luaopen_package, 1); // require() and stuff
+    //lua_pop(thread, 1);
     luaL_requiref(thread, "base", luaopen_base, 0);
     lua_pop(thread, 1);
     luaL_requiref(thread, "bit32", luaopen_bit32, 1);
@@ -76,8 +80,18 @@ CompInstance::CompInstance(std::string ipath) : addressu(boost::uuids::random_ge
     lua_settable(thread, -3);
 
     lua_pushstring(thread, "realTime");
+    // lua_pushlightuserdata(thread, (void*)this);
+    lua_pushcclosure(thread, CompInstance::getRealTime, 0);
+    lua_settable(thread, -3);
+
+    lua_pushstring(thread, "uptime");
     lua_pushlightuserdata(thread, (void*)this);
-    lua_pushcclosure(thread, CompInstance::getRealTime, 1);
+    lua_pushcclosure(thread, CompInstance::getUptime, 1);
+    lua_settable(thread, -3);
+
+    lua_pushstring(thread, "freeMemory");
+    lua_pushlightuserdata(thread, (void*)this);
+    lua_pushcclosure(thread, CompInstance::getFreeMemory, 1);
     lua_settable(thread, -3);
     lua_setglobal(thread, "computer");
 
@@ -98,9 +112,13 @@ CompInstance::CompInstance(std::string ipath) : addressu(boost::uuids::random_ge
     lua_pushcclosure(thread, CompInstance::componentInvoke, 1);
     lua_settable(thread, -3);
 
+    lua_pushstring(thread, "type");
+    lua_pushlightuserdata(thread, (void*)this);
+    lua_pushcclosure(thread, CompInstance::componentType, 1);
+    lua_settable(thread, -3);
     lua_setglobal(thread, "component");
 
-    // System APi
+    // System API
     lua_newtable(thread);
     lua_pushstring(thread, "allowBytecode");
     lua_pushlightuserdata(thread, (void*)this);
@@ -112,6 +130,33 @@ CompInstance::CompInstance(std::string ipath) : addressu(boost::uuids::random_ge
     lua_pushcclosure(thread, CompInstance::getTimeout, 1);
     lua_settable(thread, -3);
     lua_setglobal(thread, "system");
+
+    // Unicode API
+    lua_newtable(thread);
+    lua_pushstring(thread, "char");
+    lua_pushcfunction(thread, CompInstance::uniChar);
+    lua_settable(thread, -3);
+
+    lua_pushstring(thread, "upper");
+    lua_pushcfunction(thread, CompInstance::uniUpper);
+    lua_settable(thread, -3);
+
+    lua_pushstring(thread, "lower");
+    lua_pushcfunction(thread, CompInstance::uniLower);
+    lua_settable(thread, -3);
+
+    lua_pushstring(thread, "reverse");
+    lua_pushcfunction(thread, CompInstance::uniReverse);
+    lua_settable(thread, -3);
+
+    lua_pushstring(thread, "len");
+    lua_pushcfunction(thread, CompInstance::uniLen);
+    lua_settable(thread, -3);
+
+    lua_pushstring(thread, "sub");
+    lua_pushcfunction(thread, CompInstance::uniSub);
+    lua_settable(thread, -3);
+    lua_setglobal(thread, "unicode");
 
     int err = luaL_loadstring(thread, init);
     if (err == LUA_ERRSYNTAX)
@@ -126,13 +171,13 @@ CompInstance::CompInstance(std::string ipath) : addressu(boost::uuids::random_ge
         {
             if (lua_gettop(thread) > 0)
             {
-                std::cout << lua_typename(thread, 1) << std::endl;
+
             }
             args = 0;
             if (lua_isfunction(thread, 1))
             {
                 lua_pushvalue(thread, 1);
-                lua_call(thread, 0, LUA_MULTRET);
+                lua_pcall(thread, 0, LUA_MULTRET, 0);
                 args = 1;
             }
         }
@@ -214,6 +259,22 @@ int CompInstance::componentInvoke(lua_State *L)
     return 0;
 }
 
+int CompInstance::componentType(lua_State *L)
+{
+    std::string address = luaL_checkstring(L, 1);
+
+    CompInstance *ins = (CompInstance*)lua_touserdata(L, lua_upvalueindex(1));
+    for(std::vector<boost::shared_ptr<Component> >::iterator it = ins->components.begin(); it != ins->components.end(); ++it)
+    {
+        if ((*it)->address == address)
+        {
+            lua_pushstring(L, (*it)->getName().c_str());
+            return 1;
+        }
+    }
+    return 0;
+}
+
 int CompInstance::getBootAddress(lua_State *L)
 {
     CompInstance *ins = (CompInstance*)lua_touserdata(L, lua_upvalueindex(1));
@@ -244,6 +305,20 @@ int CompInstance::getRealTime(lua_State *L)
     return 1;
 }
 
+int CompInstance::getUptime(lua_State *L)
+{
+    CompInstance *ins = (CompInstance*)lua_touserdata(L, lua_upvalueindex(1));
+    lua_pushnumber(L, ins->startTime.elapsed());
+    return 1;
+}
+
+int CompInstance::getFreeMemory(lua_State *L)
+{
+    CompInstance *ins = (CompInstance*)lua_touserdata(L, lua_upvalueindex(1));
+    lua_pushnumber(L, ins->maxMemory - ins->usedMemory);
+    return 1;
+}
+
 int CompInstance::allowBytecode(lua_State *L)
 {
     lua_pushboolean(L, 0);
@@ -254,4 +329,97 @@ int CompInstance::getTimeout(lua_State *L)
 {
     lua_pushnumber(L, 60);
     return 1;
+}
+
+int CompInstance::uniChar(lua_State *L)
+{
+    UnicodeString str;
+    for (int i = 1; i != lua_gettop(L) + 1; ++i)
+    {
+        str += (UChar)luaL_checknumber(L, i);
+    }
+
+    std::string newString;
+    str.toUTF8String(newString);
+    lua_pushstring(L, newString.c_str());
+    return 1;
+}
+
+int CompInstance::uniUpper(lua_State *L)
+{
+    UnicodeString str(luaL_checkstring(L, 1));
+    str.toUpper();
+    std::string newString;
+    str.toUTF8String(newString);
+    lua_pushstring(L, newString.c_str());
+
+    return 1;
+}
+
+int CompInstance::uniLower(lua_State *L)
+{
+    UnicodeString str(luaL_checkstring(L, 1));
+    str.toLower();
+    std::string newString;
+    str.toUTF8String(newString);
+    lua_pushstring(L, newString.c_str());
+
+    return 1;
+}
+
+int CompInstance::uniReverse(lua_State *L)
+{
+    UnicodeString str(luaL_checkstring(L, 1));
+    str.reverse();
+    std::string newString;
+    str.toUTF8String(newString);
+    lua_pushstring(L, newString.c_str());
+
+    return 1;
+}
+
+int CompInstance::uniLen(lua_State *L)
+{
+    UnicodeString str(luaL_checkstring(L, 1));
+    lua_pushnumber(L, str.length());
+
+    return 1;
+}
+
+int CompInstance::uniSub(lua_State *L)
+{
+    UnicodeString str(luaL_checkstring(L, 1));
+    int start = luaL_checknumber(L, 2);
+    int length = luaL_checknumber(L, 3);
+    UnicodeString newString(str, start, length);
+
+    std::string newerString;
+    newString.toUTF8String(newerString);
+    lua_pushstring(L, newerString.c_str());
+
+    return 1;
+}
+
+void *CompInstance::l_alloc_restricted (void *ud, void *ptr, size_t osize, size_t nsize)
+{
+  const int MAX_SIZE = 1024 * 1024; /* set limit here */
+  CompInstance *ins = (CompInstance*)ud;
+
+  if (nsize == 0)
+  {
+    free(ptr);
+    ins->usedMemory -= osize; /* substract old size from used memory */
+    return NULL;
+  }
+  else
+  {
+    if (ins->usedMemory + (nsize - osize) > MAX_SIZE) /* too much memory in use */
+    {
+      return NULL;
+    }
+    ptr = realloc(ptr, nsize);
+    if (ptr) /* reallocation successful? */
+      ins->usedMemory += (nsize - osize);
+    return ptr;
+  }
 }
