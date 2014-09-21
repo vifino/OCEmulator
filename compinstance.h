@@ -6,12 +6,15 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <queue>
 #include "component.h"
 #include "filesystemcomponent.h"
 #include "lua.hpp"
 #include <cstdio>
 
 #include <QTime>
+#include <QTimer>
+#include <QTimerEvent>
 
 #include <unicode/ustring.h>
 #include <unicode/unistr.h>
@@ -23,9 +26,22 @@
 #include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
 
+struct signalPar
+{
+    unsigned char type;
+    void *data;
+};
+
+typedef std::vector<signalPar> signal;
+
+signalPar strToPar(std::string str);
+signalPar intToPar(int num);
+signalPar boolToPar(int num);
+signalPar nilToPar();
+
 typedef boost::shared_ptr<Component> CompPtr;
 
-class CompInstance
+class CompInstance : QObject
 {
 public:
     CompInstance(std::string ipath);
@@ -38,11 +54,17 @@ protected:
     int maxMemory;
 
     QTime startTime;
+    int timerId;
+
+    void timerEvent(QTimerEvent *event);
+    void resumeThread(int args, int timer = 0);
+    std::queue<signal> sigs; // signals is reserved :(
 private:
     lua_State *state;
     lua_State *thread;
-
     boost::uuids::uuid addressu;
+
+    void onTimer();
 
     static int componentList(lua_State *L);
     static int methodsList(lua_State *L);
@@ -55,6 +77,8 @@ private:
     static int getRealTime(lua_State *L);
     static int getFreeMemory(lua_State *L);
     static int getUptime(lua_State *L);
+    static int getTmpAddress(lua_State *L);
+    static int pushSignal(lua_State *L);
 
     static int allowBytecode(lua_State *L);
     static int getTimeout(lua_State *L);

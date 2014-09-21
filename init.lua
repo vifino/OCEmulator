@@ -1,5 +1,3 @@
-print(unicode.char(10045, 23432, 234))
-
 local hookInterval = 100
 local deadline = math.huge
 local hitDeadline = false
