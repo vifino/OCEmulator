@@ -6,43 +6,15 @@
 #
 #-------------------------------------------------
 
-QT       += core gui opengl
+QT       += core gui opengl qml
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = OCEmulator
-TEMPLATE = app
+#TARGET = OCEmulator
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    emuscreen.cpp \
-    compinstance.cpp \
-    component.cpp \
-    filesystemcomponent.cpp \
-    screencomponent.cpp
+INCLUDEPATH += freetype-gl
 
-HEADERS  += mainwindow.h \
-    emuscreen.h \
-    compinstance.h \
-    component.h \
-    filesystemcomponent.h \
-    lua.hpp \
-    screencomponent.h
-
-FORMS    += mainwindow.ui
-
-OTHER_FILES += \
-    init.lua
-
-INCLUDEPATH += $$quote(/usr/include/freetype2)
-
-unix|win32: LIBS += -lboost_system
-unix|win32: LIBS += -llua5.2
-unix|win32: LIBS += -licuuc
-unix|win32: LIBS += -lboost_filesystem
-unix|win32: LIBS += -lfreetype
-
-RESOURCES += \
-    fonts.qrc
-
-
+TEMPLATE = subdirs
+CONFIG += link_pkgconfig
+CONFIG += ordered
+SUBDIRS += freetype-gl src

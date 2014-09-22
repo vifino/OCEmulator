@@ -97,7 +97,7 @@ sandbox = {
     checkDeadline()
     return table.unpack(result, 1, result.n)
   end,
-  print = print,--nil, -- in boot/*_base.lua
+  print = nil, -- in boot/*_base.lua
   rawequal = rawequal,
   rawget = rawget,
   rawlen = rawlen,
@@ -343,7 +343,6 @@ local function invoke(target, direct, ...)
       return result
     end))
   end
-
   return processResult(result)
 end
 
@@ -503,7 +502,7 @@ libcomponent = {
         return invoke(component, direct, address, method, ...)
       end
     end
-    error("no such method", 2)
+    error("no such method", 1)
   end,
   list = function(filter, exact)
     checkArg(1, filter, "string", "nil")
@@ -725,4 +724,3 @@ end
 -- JNLua converts the coroutine to a string immediately, so we can't get the
 -- traceback later. Because of that we have to do the error handling here.
 return pcall(main)
-
