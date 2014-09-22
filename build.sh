@@ -3,5 +3,5 @@
 mkdir build &> /dev/null
 cd build 
 make clean &> /dev/null
-cmake ..
+qmake ..
 make
