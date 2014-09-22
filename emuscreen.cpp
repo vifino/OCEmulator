@@ -3,6 +3,11 @@
 EmuScreen::EmuScreen(QWidget *parent) :
     QGLWidget(parent)
 {
+    fontdb.addApplicationFont(":/fonts/unifont.ttf");
+    uniFont = fontdb.font("Unifont", "Medium", 8);
+
+    ScreenComponent sc(this);
+    screens.push_back(sc);
 }
 
 
@@ -27,12 +32,10 @@ void EmuScreen::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glColor3f(1, 0, 0);
+    glColor3f(0, 1, 0);
 
-    glBegin(GL_QUADS);
-    glVertex2f(0, 0);
-    glVertex2f(100, 0);
-    glVertex2f(100, 100);
-    glVertex2f(0, 100);
-    glEnd();
+    for (std::vector<ScreenComponent>::iterator it = screens.begin(); it != screens.end(); ++it)
+    {
+        it->draw();
+    }
 }

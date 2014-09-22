@@ -97,7 +97,7 @@ sandbox = {
     checkDeadline()
     return table.unpack(result, 1, result.n)
   end,
-  print = nil, -- in boot/*_base.lua
+  print = print,--nil, -- in boot/*_base.lua
   rawequal = rawequal,
   rawget = rawget,
   rawlen = rawlen,
