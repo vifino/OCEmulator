@@ -7,7 +7,6 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     QColor col = QColor::fromCmyk(0.39, 0.39, 0.0, 0.0);
     ui->setupUi(this);
-    ui->screen->qglClearColor(col.dark());
 }
 
 MainWindow::~MainWindow()

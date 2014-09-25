@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <widget class="QWidget" name="centralwidget">
+  <widget class="QWidget" name="thing">
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="leftMargin">
      <number>1</number>
@@ -28,7 +28,14 @@
      <number>1</number>
     </property>
     <item>
-     <widget class="EmuScreen" name="screen" native="true"/>
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>There is nothing here yet!</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -44,14 +51,6 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>EmuScreen</class>
-   <extends>QWidget</extends>
-   <header>emuscreen.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

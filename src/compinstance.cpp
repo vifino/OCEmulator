@@ -15,7 +15,7 @@ signalPar intToPar(int num)
     signalPar par;
     par.type = 1;
     par.data = malloc(sizeof(int));
-    par.data = (int*)num;
+    ((int*)par.data)[0] = num;
     return par;
 }
 
@@ -24,7 +24,7 @@ signalPar boolToPar(int num)
     signalPar par;
     par.type = 2;
     par.data = malloc(sizeof(int));
-    par.data = (int*)num;
+    ((int*)par.data)[0] = num;
     return par;
 }
 
@@ -53,16 +53,12 @@ CompInstance::CompInstance(std::string ipath) : addressu(boost::uuids::random_ge
     //For testing
     boost::shared_ptr<FilesystemComponent> c(new FilesystemComponent(path + "/filesystems", "f6ab49ce-b10c-4dba-ae8d-7b81a3925be5"));
     components.push_back((CompPtr)c);
+    boost::shared_ptr<ScreenComponent> scr(new ScreenComponent(this));
+    components.push_back((CompPtr)scr);
+    boost::shared_ptr<ComponentGPU> gpu(new ComponentGPU(this));
+    components.push_back((CompPtr)gpu);
 
     std::cout << "New computer with uuid '" << address << "'" << std::endl;
-
-    /*std::ifstream n;
-    n.open("init.lua", std::ios::ate | std::ios::binary);
-    std::ifstream::pos_type length = n.tellg();
-    n.seekg(0, std::ios_base::beg);
-
-    std::vector<char> initb(length);
-    n.read(&initb[0], length);*/
 
     FILE *initf = fopen("init.lua", "r");
     fseek(initf, 0, SEEK_END);
@@ -78,8 +74,6 @@ CompInstance::CompInstance(std::string ipath) : addressu(boost::uuids::random_ge
     state = lua_newstate(CompInstance::l_alloc_restricted, this);
 
     thread = lua_newthread(state);
-    //luaL_requiref(thread, "package", luaopen_package, 1); // require() and stuff
-    //lua_pop(thread, 1);
     luaL_requiref(thread, "base", luaopen_base, 0);
     lua_pop(thread, 1);
     luaL_requiref(thread, "bit32", luaopen_bit32, 1);
@@ -128,6 +122,11 @@ CompInstance::CompInstance(std::string ipath) : addressu(boost::uuids::random_ge
     lua_pushstring(thread, "freeMemory");
     lua_pushlightuserdata(thread, (void*)this);
     lua_pushcclosure(thread, CompInstance::getFreeMemory, 1);
+    lua_settable(thread, -3);
+
+    lua_pushstring(thread, "totalMemory");
+    lua_pushlightuserdata(thread, (void*)this);
+    lua_pushcclosure(thread, CompInstance::getTotalMemory, 1);
     lua_settable(thread, -3);
 
     lua_pushstring(thread, "tmpAddress");
@@ -199,6 +198,10 @@ CompInstance::CompInstance(std::string ipath) : addressu(boost::uuids::random_ge
     lua_pushcfunction(thread, CompInstance::uniLen);
     lua_settable(thread, -3);
 
+    lua_pushstring(thread, "wlen");
+    lua_pushcfunction(thread, CompInstance::uniLen);
+    lua_settable(thread, -3);
+
     lua_pushstring(thread, "sub");
     lua_pushcfunction(thread, CompInstance::uniSub);
     lua_settable(thread, -3);
@@ -219,7 +222,55 @@ CompInstance::CompInstance(std::string ipath) : addressu(boost::uuids::random_ge
 
 void CompInstance::timerEvent(QTimerEvent *event)
 {
-    resumeThread(0, event->timerId());
+    if (timerId != event->timerId())
+    {
+        std::cerr << "This should not have happened..." << std::endl;
+        killTimer(event->timerId());
+    }
+    else
+        tryResume(event->timerId());
+    //resumeThread(0, event->timerId());
+}
+
+void CompInstance::tryResume(int timer)
+{
+    if (lua_status(thread) == LUA_YIELD)
+    {
+        if (!sigs.empty())
+        {
+            signal sig = sigs.front();
+            int size = sig.size();
+            for (signal::iterator it = sig.begin(); it != sig.end(); ++it)
+            {
+                if (it->type == 0)
+                {
+                    lua_pushnil(thread);
+                }
+                else if (it->type == 1)
+                {
+                    std::cout << *(int*)it->data << std::endl;
+                    lua_pushnumber(thread, *((int*)it->data));
+                    free(it->data);
+                }
+                else if (it->type == 2)
+                {
+                    lua_pushnumber(thread, *((int*)it->data));
+                    free(it->data);
+                }
+                else if (it->type == 3)
+                {
+                    lua_pushstring(thread, (char*)it->data);
+                    free(it->data);
+                }
+            }
+
+            sigs.pop();
+            resumeThread(size, timer);
+            return;
+        }
+
+        resumeThread(0, timer);
+    }
 }
 
 void CompInstance::resumeThread(int args, int timer)
@@ -239,17 +290,6 @@ void CompInstance::resumeThread(int args, int timer)
     {
         if ((int)(lua_tonumber(thread, 1) * 1000) > 0)
             timerId = startTimer(lua_tonumber(thread, 1) * 1000);
-    }
-    else
-    {
-        if (!sigs.empty())
-        {
-            signal sig = sigs.front();
-            for (signal::iterator it = sig.begin(); it != sig.end(); ++it)
-            {
-                std::cout << (int)it->type << std::endl;
-            }
-        }
     }
 
     if (timer != 0)
@@ -388,6 +428,13 @@ int CompInstance::getFreeMemory(lua_State *L)
 {
     CompInstance *ins = (CompInstance*)lua_touserdata(L, lua_upvalueindex(1));
     lua_pushnumber(L, ins->maxMemory - ins->usedMemory);
+    return 1;
+}
+
+int CompInstance::getTotalMemory(lua_State *L)
+{
+    CompInstance *ins = (CompInstance*)lua_touserdata(L, lua_upvalueindex(1));
+    lua_pushnumber(L, 1024 * 1024);
     return 1;
 }
 

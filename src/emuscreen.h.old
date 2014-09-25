@@ -1,0 +1,43 @@
+#ifndef EMUSCREEN_H
+#define EMUSCREEN_H
+
+#define GL_GLEXT_PROTOTYPES
+
+#include <vector>
+#include <iostream>
+#include <string>
+#include <cstdio>
+
+#include <QFont>
+#include <QFontDatabase>
+
+#include <unicode/ustring.h>
+#include <unicode/unistr.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+class EmuScreen;
+#include "screencomponent.h"
+
+class EmuScreen
+{
+    Q_OBJECT
+public:
+    explicit EmuScreen(QWidget *parent = 0);
+    QFont uniFont;
+    FT_Library flib;
+    FT_Face face;
+signals:
+
+public slots:
+
+protected:
+    void initializeGL();
+    void paintGL();
+    void resizeGL(int width, int height);
+private:
+    QFontDatabase fontdb;
+    std::vector<ScreenComponent> screens;
+};
+
+#endif // EMUSCREEN_H
