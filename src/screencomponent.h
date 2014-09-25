@@ -4,42 +4,58 @@
 class ScreenComponent;
 
 #include "component.h"
-#include "emuscreen.h"
 
 #include <iostream>
-#include <QGLWidget>
 #include <QColor>
 #include <QTime>
 #include <QString>
 #include <string>
 #include <vector>
+#include "mainwindow.h"
+
+#include "compinstance.h"
+
 #include <unicode/ustring.h>
+#include <unicode/unistr.h>
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 struct pixInfo
 {
-    float br, bg, bb;
-    float tr, tg, tb;
-    UnicodeString ch;
+    SDL_Color bColor;
+    SDL_Color tColor;
+    UChar ch;
 };
 
 class ScreenComponent : public Component
 {
 public:
-    ScreenComponent(EmuScreen *scr);
+    ScreenComponent(CompInstance *ins);
+    ~ScreenComponent();
     void draw();
-private:
-    EmuScreen *screen;
     int pixX, pixY;
+    void resize(int x, int y, bool wres = false);
+    std::vector<std::vector<pixInfo> > pixels;
+
+    TTF_Font *font;
+private:
     int pixH, pixW;
     int posX, posY;
-    std::vector<std::vector<pixInfo> > pixels;
 
     int listMethods(lua_State *L);
     int onInvoke(lua_State *L);
     std::string getName();
 
-    void resize(int x, int y);
     pixInfo defPix;
+
+    SDL_Window *window;
+    SDL_Surface *wsurface;
+    SDL_Surface *surface;
+    SDL_Thread *thread;
+
+    static int drawThread(void *screen);
+    CompInstance *com;
 };
 
 #endif // SCREENCOMPONENT_H
