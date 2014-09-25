@@ -8,26 +8,7 @@
 #include <vector>
 #include <queue>
 #include <cstdio>
-
-#include "component.h"
-#include "filesystemcomponent.h"
-#include "screencomponent.h"
-
-#include "lua.hpp"
-
-#include <QTime>
-#include <QTimer>
-#include <QTimerEvent>
-
-#include <unicode/ustring.h>
-#include <unicode/unistr.h>
-
-#include <boost/bind.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/shared_ptr.hpp>
+class CompInstance;
 
 struct signalPar
 {
@@ -42,14 +23,36 @@ signalPar intToPar(int num);
 signalPar boolToPar(int num);
 signalPar nilToPar();
 
-typedef boost::shared_ptr<Component> CompPtr;
+#include <boost/bind.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
 
+#include "component.h"
+typedef boost::shared_ptr<Component> CompPtr;
+#include "filesystemcomponent.h"
+#include "screencomponent.h"
+#include "componentgpu.h"
+
+#include "lua.hpp"
+
+#include <QTime>
+#include <QTimer>
+#include <QTimerEvent>
+
+#include <unicode/ustring.h>
+#include <unicode/unistr.h>
 class CompInstance : QObject
 {
 public:
     CompInstance(std::string ipath);
     std::string address;
     std::vector<CompPtr> components;
+
+    std::queue<signal> sigs; // 'signals' is reserved
+    void tryResume(int timer = 0);
 protected:
     std::string bootAddress;
     std::string path;
@@ -61,7 +64,6 @@ protected:
 
     void timerEvent(QTimerEvent *event);
     void resumeThread(int args, int timer = 0);
-    std::queue<signal> sigs; // signals is reserved :(
 private:
     lua_State *state;
     lua_State *thread;
@@ -79,6 +81,7 @@ private:
     static int setBootAddress(lua_State *L);
     static int getRealTime(lua_State *L);
     static int getFreeMemory(lua_State *L);
+    static int getTotalMemory(lua_State *L);
     static int getUptime(lua_State *L);
     static int getTmpAddress(lua_State *L);
     static int pushSignal(lua_State *L);
