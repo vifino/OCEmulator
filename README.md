@@ -11,4 +11,4 @@ Dependencies
 
 Building
 ========
-'cmake .'
+./build.sh
