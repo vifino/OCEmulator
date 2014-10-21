@@ -14,28 +14,30 @@
 
 // TODO: Asynchronous calls
 
-class HttpRequest
-{
+class HttpRequest {
 public:
-HttpRequest();
-~HttpRequest();
+    HttpRequest();
 
-void get(std::string address, std::string path);
-boost::system::error_code error;
+    ~HttpRequest();
 
-std::string readLine();
-std::string readAll();
+    void get(std::string address, std::string path);
 
-boost::asio::streambuf request;
-boost::asio::streambuf response;
-std::ostream request_stream;
-std::istream response_stream;
-std::stringstream data;
+    boost::system::error_code error;
+
+    std::string readLine();
+
+    std::string readAll();
+
+    boost::asio::streambuf request;
+    boost::asio::streambuf response;
+    std::ostream request_stream;
+    std::istream response_stream;
+    std::stringstream data;
 private:
-  boost::asio::io_service service;
-  boost::asio::ip::tcp::resolver::iterator end_iterator;
-  boost::asio::ip::tcp::resolver resolver;
-  boost::asio::ip::tcp::socket socket;
+    boost::asio::io_service service;
+    boost::asio::ip::tcp::resolver::iterator end_iterator;
+    boost::asio::ip::tcp::resolver resolver;
+    boost::asio::ip::tcp::socket socket;
 };
 
 #endif // HTTPREQUEST_H

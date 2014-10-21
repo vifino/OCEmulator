@@ -5,19 +5,25 @@
 #include "eventhandler.h"
 #include <unordered_map>
 
-class ComponentKeyboard : public ComponentBase
-{
+class ComponentKeyboard : public ComponentBase {
 public:
-  ComponentKeyboard(int nSlot, EventHandler *eh);
-  ~ComponentKeyboard();
-  virtual std::string getType();
-  virtual int invokeMethod(lua_State* state);
-  virtual int getDocumentation(lua_State* state);
-  virtual int listMethods(lua_State* state);
-  void keyEvent(GdkEventKey *event);
+    ComponentKeyboard(int nSlot, EventHandler *eh);
+
+    ~ComponentKeyboard();
+
+    virtual std::string getType();
+
+    virtual int invokeMethod(lua_State *state);
+
+    virtual int getDocumentation(lua_State *state);
+
+    virtual int listMethods(lua_State *state);
+
+    void keyEvent(GdkEventKey *event);
+
 private:
-  EventHandler *eventH;
-  std::unordered_map<int,int> kbMap;
+    EventHandler *eventH;
+    std::unordered_map<int, int> kbMap;
 };
 
 #endif // COMPONENTKEYBOARD_H
