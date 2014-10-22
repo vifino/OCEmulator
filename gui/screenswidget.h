@@ -4,7 +4,7 @@
 #include <gtkmm.h>
 #include <memory>
 #include <vector>
-#include "componentscreen.h"
+#include "components/componentscreen.h"
 
 #define  screenIterator std::vector<std::shared_ptr<ComponentScreen> >::iterator
 

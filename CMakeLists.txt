@@ -12,12 +12,26 @@ SET(CMAKE_CXX_FLAGS "-std=c++0x")
 
 pkg_check_modules(GTKMM3 REQUIRED gtkmm-3.0)
 
-include_directories(ocemulator ${LUA_INCLUDE_DIR} ${GTKMM3_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+include_directories(ocemulator ${LUA_INCLUDE_DIR} ${GTKMM3_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR})
 
 link_directories(${GTKMM3_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
 add_definitions(${GTKMM3_CFLAGS_OTHER})
 
-add_executable(ocemulator main.cpp ocewindow.cpp httprequest.cpp screenswidget.cpp computerinstance.cpp componentbase.cpp componentfilesystem.cpp componentscreen.cpp componentgpu.cpp eventhandler.cpp componentkeyboard.cpp)
+set(OCEmulator_Sources
+    main.cpp
+    gui/ocewindow.cpp
+    httprequest.cpp
+    gui/screenswidget.cpp
+    computerinstance.cpp
+    components/componentbase.cpp
+    components/componentfilesystem.cpp
+    components/componentscreen.cpp
+    components/componentgpu.cpp
+    eventhandler.cpp
+    components/componentkeyboard.cpp
+)
+
+add_executable(ocemulator ${OCEmulator_Sources})
 
 target_link_libraries(ocemulator ${GTKMM3_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LUA_LIBRARIES})
 

@@ -15,18 +15,18 @@ class ComputerInstance;
 #include <gtkmm.h>
 #include <time.h>
 #include <wchar.h>
-#include "screenswidget.h"
+#include "gui/screenswidget.h"
 
 #include <lua.hpp>
 #include <stdlib.h>
-#include "componentbase.h"
+#include "components/componentbase.h"
 
 #define cIterator std::vector<std::shared_ptr<ComponentBase> >::iterator
 
-#include "componentfilesystem.h"
-#include "componentscreen.h"
-#include "componentgpu.h"
-#include "componentkeyboard.h"
+#include "components/componentfilesystem.h"
+#include "components/componentscreen.h"
+#include "components/componentgpu.h"
+#include "components/componentkeyboard.h"
 #include "eventhandler.h"
 
 class ComputerInstance {

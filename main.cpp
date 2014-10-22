@@ -5,7 +5,7 @@
 #include <fstream>
 
 #include "httprequest.h"
-#include "ocewindow.h"
+#include "gui/ocewindow.h"
 #include "computerinstance.h"
 
 extern "C"
